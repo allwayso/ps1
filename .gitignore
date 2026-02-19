@@ -1,0 +1,10 @@
+# 忽略编译输出目录（核心）
+bin/
+out/
+
+# 忽略操作系统生成的冗余文件
+.DS_Store
+Thumbs.db
+
+# 忽略 Eclipse 特定的本地设置（保留 .project 和 .classpath 即可）
+.settings/

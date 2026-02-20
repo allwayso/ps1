@@ -7,6 +7,7 @@ import static org.junit.Assert.*;
 
 import java.time.Instant;
 import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.Test;
@@ -14,28 +15,67 @@ import org.junit.Test;
 public class FilterTest {
 
     /*
-     * TODO: your testing strategies for these methods should go here.
-     * See the ic03-testing exercise for examples of what a testing strategy comment looks like.
-     * Make sure you have partitions.
+     * Testing strategy for writtenBy:
+     * 1. tweets.size(): 0 or more
+     * 2. Number of tweets by the specified username: 0 or more
+     * 3. Case sensitivity:
+     * - username and author match exactly (both lowercase/uppercase)
+     * - username and author differ in case (should still match)
      */
     
     private static final Instant d1 = Instant.parse("2016-02-17T10:00:00Z");
-    private static final Instant d2 = Instant.parse("2016-02-17T11:00:00Z");
-    
-    private static final Tweet tweet1 = new Tweet(1, "alyssa", "is it reasonable to talk about rivest so much?", d1);
-    private static final Tweet tweet2 = new Tweet(2, "bbitdiddle", "rivest talk in 30 minutes #hype", d2);
+    private static final Instant d2 = Instant.parse("2016-02-17T10:05:00Z");
+    private static final Instant d3 = Instant.parse("2016-02-17T10:10:00Z");
+    private static final Instant d4 = Instant.parse("2016-02-17T10:15:00Z");
+    private static final Instant d5 = Instant.parse("2016-02-17T10:20:00Z");
+
+    private static final Tweet tweet1 = new Tweet(1, "alyssa", "I've been waiting for my latte for 10 years @bbitdiddle", d1);
+    private static final Tweet tweet2 = new Tweet(2, "bbitdiddle", "@Alyssa Keep calm, I'm just fighting with the espresso machine!", d2);
+    private static final Tweet tweet3 = new Tweet(3, "ALYSSA", "The machine won. My coffee is on the floor. #sad", d3);
+    private static final Tweet tweet4 = new Tweet(4, "charles", "Watching @alyssa and @bbitdiddle is better than Netflix.", d4);
+    private static final Tweet tweet5 = new Tweet(5, "bbitdiddle", 
+            "Success! I fixed it. @alyssa, come back! Free refills for the floor-latte incident! ☕️", d5);
     
     @Test(expected=AssertionError.class)
     public void testAssertionsEnabled() {
         assert false; // make sure assertions are enabled with VM argument: -ea
     }
     
-    @Test
-    public void testWrittenByMultipleTweetsSingleResult() {
-        List<Tweet> writtenBy = Filter.writtenBy(Arrays.asList(tweet1, tweet2), "alyssa");
-        
-        assertEquals("expected singleton list", 1, writtenBy.size());
-        assertTrue("expected list to contain tweet", writtenBy.contains(tweet1));
+    /*****************test case for WrittenBy******************/
+    
+    //This test covers size=more,number=more,sensitivity=differ
+    @Test 
+    public void testSensitivityDiff() {
+        List<Tweet> res=Filter.writtenBy(Arrays.asList(tweet1,tweet3),"Alyssa");
+        assertEquals(res,Arrays.asList(tweet1,tweet3));
+    }
+    
+    //This test covers size=0
+    @Test 
+    public void testEmptyInput() {
+        List<Tweet> res=Filter.writtenBy(new ArrayList<>(),"Alyssa");
+        assertTrue(res.isEmpty());
+    }
+    
+    //This test covers size=more,number=0
+    @Test 
+    public void testNoMatch() {
+        List<Tweet> res=Filter.writtenBy(Arrays.asList(tweet1,tweet3),"bbitdiddle");
+        assertTrue(res.isEmpty());
+    }
+    
+    //This test covers size=more,number=more,sensitivity=same
+    @Test 
+    public void testSensitivitySame() {
+        List<Tweet> res=Filter.writtenBy(Arrays.asList(tweet2,tweet5),"bbitdiddle");
+        assertEquals(res,Arrays.asList(tweet2,tweet5));
+    }
+    
+    //This test covers size!=number
+    @Test 
+    public void test() {
+        List<Tweet> res=Filter.writtenBy(Arrays.asList(tweet1,tweet2,tweet3,tweet4,tweet5),"bbitdiddle");
+        assertEquals(res,Arrays.asList(tweet2,tweet5));
     }
     
     @Test

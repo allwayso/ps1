@@ -23,6 +23,9 @@ public class Extract {
      *         tweet in the list.
      */
     public static Timespan getTimespan(List<Tweet> tweets) {
+        if (tweets.isEmpty()) {
+            throw new IllegalArgumentException("tweets list cannot be empty");
+        }
         Instant min_stamp = Instant.MAX;
         Instant max_stamp = Instant.MIN;
         for (Tweet tweet : tweets) {

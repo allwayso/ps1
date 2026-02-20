@@ -25,6 +25,14 @@ public class ExtractTest {
      * - timestamps are very close (nanoseconds)
      * - timestamps are far apart (years)
      * 3.Time stamp order:ordered or unordered
+     * 
+     * For method getMentionedUsers:
+     * Partition the Tweets case into:
+     * 1.mention repetitive:repeated or not
+     * 2.mentioned users:0 or more
+     * 3.precede character:valid character,invalid character or none
+     * 4.follow character:valid character,invalid character or none
+     * 5.username case:all lowercase,all upper case,mixed case
      */
     
     private static final Instant d1 = Instant.parse("2016-02-17T10:00:00Z");
@@ -33,11 +41,15 @@ public class ExtractTest {
     private static final Instant d4 = Instant.parse("1996-02-17T12:00:00Z"); //far from other days,unordered element
     private static final Instant d5 = d3; //same as d3
     
-    private static final Tweet tweet1 = new Tweet(1, "alyssa", "is it reasonable to talk about rivest so much?", d1);
+    private static final Tweet tweet1 = new Tweet(1, "alyssa", "@bbitdiddle,is it reasonable to talk about rivest so much?", d1);
     private static final Tweet tweet2 = new Tweet(2, "bbitdiddle", "rivest talk in 30 minutes #hype", d2);
     private static final Tweet tweet3 = new Tweet(3, "bitdavis", "@alyssa, check out this nano-second difference!", d3);
     private static final Tweet tweet4 = new Tweet(4, "charles", "Throwback to 1996! No @mentions here.", d4);
-    private static final Tweet tweet5 = new Tweet(5, "alyssa", "Replying again at the exact same time @bitdavis", d5);
+    private static final Tweet tweet5 = new Tweet(5, "alyssa", "@bbitdiddle ,Replying again at the exact same time ", d5);
+    private static final Tweet tweet6 = new Tweet(6, "charles_newVersion", "How to use at ?,is help@mit.edu a legal format?", d5);
+    private static final Tweet tweet7 = new Tweet(7, "alyssa", "At should not be preceded by any characters, @charles_newVersion", d5);
+    private static final Tweet tweet8 = new Tweet(8, "charles_newVersion", "Thx,I'v known the way to use @ !", d5);
+    private static final Tweet tweet9 = new Tweet(9, "bitdavis", "@alyssa, @ALYSSA, @Alyssa ! loooook at this!", d3);
     
     @Test(expected=AssertionError.class)
     public void testAssertionsEnabled() {
@@ -85,13 +97,56 @@ public class ExtractTest {
         assertEquals("expected end", d2, timespan.getEnd());
     }
     
+    /************* Test Case for GetMentionedUsers *************/
+    
+    //This test covers users=0
     @Test
     public void testGetMentionedUsersNoMention() {
-        Set<String> mentionedUsers = Extract.getMentionedUsers(Arrays.asList(tweet1));
+        Set<String> mentionedUsers = Extract.getMentionedUsers(Arrays.asList(tweet2));
         
         assertTrue("expected empty set", mentionedUsers.isEmpty());
     }
-
+    
+    //This test covers repetitive=true,users=more,precede=none,follow=invalid character
+    @Test
+    public void testGetMentionedUsersRepeatedNames() {
+        Set<String> mentionedUsers = Extract.getMentionedUsers(Arrays.asList(tweet1,tweet5));
+        
+        assertTrue("expected only one User", mentionedUsers.size()==1);
+    }
+    
+    //This test covers precede=valid character,follow=valid character
+    @Test
+    public void testGetMentionedUsersPrecededFormat() {
+        Set<String> mentionedUsers = Extract.getMentionedUsers(Arrays.asList(tweet6));
+        
+        assertTrue("expected empty set", mentionedUsers.isEmpty());
+    }
+    
+    //This test covers follow=valid character,precede=invalid character
+    @Test
+    public void testGetMentionedUsersFollowedFormat() {
+        Set<String> mentionedUsers = Extract.getMentionedUsers(Arrays.asList(tweet7));
+        String name = mentionedUsers.iterator().next();
+        assertEquals("charles_newversion", name.toLowerCase());
+    }
+    
+    //This test covers precede=none,follow=none
+    @Test
+    public void testGetMentionedUsersEmptyFormat() {
+        Set<String> mentionedUsers = Extract.getMentionedUsers(Arrays.asList(tweet8));
+        
+        assertTrue("expected empty set",mentionedUsers.isEmpty());
+    }
+    
+    //This test covers username case=upper,lower,mixed
+    @Test
+    public void testGetMentionedUserstDifferentCases() {
+        Set<String> mentionedUsers = Extract.getMentionedUsers(Arrays.asList(tweet9));
+        
+        assertTrue("expected only one User", mentionedUsers.size()==1);
+    }
+    
     /*
      * Warning: all the tests you write here must be runnable against any
      * Extract class that follows the spec. It will be run against several staff

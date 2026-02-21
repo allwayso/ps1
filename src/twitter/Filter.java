@@ -4,6 +4,8 @@
 package twitter;
 
 import java.util.List;
+import java.util.ArrayList;
+import java.time.Instant;
 
 /**
  * Filter consists of methods that filter a list of tweets for those matching a
@@ -27,7 +29,13 @@ public class Filter {
      *         in the same order as in the input list.
      */
     public static List<Tweet> writtenBy(List<Tweet> tweets, String username) {
-        throw new RuntimeException("not implemented");
+        List<Tweet> res=new ArrayList<>();
+        for(Tweet t:tweets) {
+            if(t.getAuthor().equalsIgnoreCase(username)) {
+                res.add(t);
+            }
+        }
+        return res;
     }
 
     /**
@@ -41,7 +49,17 @@ public class Filter {
      *         in the same order as in the input list.
      */
     public static List<Tweet> inTimespan(List<Tweet> tweets, Timespan timespan) {
-        throw new RuntimeException("not implemented");
+        List<Tweet> res=new ArrayList<>();
+        for(Tweet t:tweets) {
+            Instant start=timespan.getStart();
+            Instant end=timespan.getEnd();
+            Instant timestamp=t.getTimestamp();
+            if((timestamp.equals(start) || timestamp.isAfter(start)) && 
+               (timestamp.equals(end) || timestamp.isBefore(end))) {
+                res.add(t);
+            }
+        }
+        return res;
     }
 
     /**

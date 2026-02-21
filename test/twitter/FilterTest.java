@@ -26,7 +26,21 @@ public class FilterTest {
      * 1.tweets.size():0 , 1 more 
      * 2.number of tweets in timespan:some,all,0 
      * 3.tweet instant : strictly within timespan,at the border,strictly out of timespan
+     * 
+     * 
+     * Testing strategy for containing:
+     * * Partition the inputs as follows:
+     * 1. tweets.size(): 0, 1, >1
+     * 2. words.size(): 0, 1, >1
+     * 3. Word position in text: start, middle, end
+     * 4. Word-to-Target relation: 
+     * - exact match (apple vs apple)
+     * - case-insensitive match (apple vs APPLE)
+     * - partial match (substring) (apple vs pineapple, apple vs app) -> should NOT match
+     * - multiple words in text match one target word
+     * - one tweet matches multiple target words
      */
+     
 
     private static final Instant d1 = Instant.parse("2016-02-17T10:00:00Z");
     private static final Instant d2 = Instant.parse("2016-02-17T10:05:00Z");
@@ -55,7 +69,7 @@ public class FilterTest {
     @Test
     public void testSensitivityDiff() {
         List<Tweet> res = Filter.writtenBy(Arrays.asList(tweet1, tweet3), "Alyssa");
-        assertEquals(res, Arrays.asList(tweet1, tweet3));
+        assertEquals(Arrays.asList(tweet1, tweet3),res);
     }
 
     // This test covers size=0
@@ -152,6 +166,8 @@ public class FilterTest {
         List<Tweet> inTimespan = Filter.inTimespan(Arrays.asList(tweet1,tweet2,tweet3,tweet4,tweet5), new Timespan(testStart, testEnd));
         assertEquals(inTimespan,Arrays.asList(tweet3,tweet4,tweet5));
     }
+    
+    /****************test for Containing*****************/
     
     @Test
     public void testContaining() {

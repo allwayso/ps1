@@ -4,7 +4,9 @@
 package twitter;
 
 import java.util.List;
+import java.util.Set;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.time.Instant;
 
 /**
@@ -30,6 +32,7 @@ public class Filter {
      */
     public static List<Tweet> writtenBy(List<Tweet> tweets, String username) {
         List<Tweet> res=new ArrayList<>();
+        if(tweets.isEmpty()) return res;//fail fast
         for(Tweet t:tweets) {
             if(t.getAuthor().equalsIgnoreCase(username)) {
                 res.add(t);
@@ -50,6 +53,7 @@ public class Filter {
      */
     public static List<Tweet> inTimespan(List<Tweet> tweets, Timespan timespan) {
         List<Tweet> res=new ArrayList<>();
+        if(tweets.isEmpty()) return res;//fail fast
         for(Tweet t:tweets) {
             Instant start=timespan.getStart();
             Instant end=timespan.getEnd();
@@ -78,7 +82,20 @@ public class Filter {
      *         same order as in the input list.
      */
     public static List<Tweet> containing(List<Tweet> tweets, List<String> words) {
-        throw new RuntimeException("not implemented");
+        List<Tweet> res=new ArrayList<>();
+        if(tweets.isEmpty()||words.isEmpty()) return res;//fail fast
+        Set<String> lowercaseWords=new HashSet<>();
+        for(String word:words) lowercaseWords.add(word.toLowerCase());
+        for(Tweet t:tweets) {
+            String[] tweetWords=t.getText().toLowerCase().split("\\s+");
+            for(String s:tweetWords) {
+                if(lowercaseWords.contains(s)) {
+                    res.add(t);
+                    break;
+                }
+            }
+        }
+        return res;
     }
 
 }

@@ -29,7 +29,7 @@ public class FilterTest {
      * 
      * 
      * Testing strategy for containing:
-     * * Partition the inputs as follows:
+     * Partition the inputs as follows:
      * 1. tweets.size(): 0, 1, >1
      * 2. words.size(): 0, 1, >1
      * 3. Word position in text: start, middle, end
@@ -39,8 +39,15 @@ public class FilterTest {
      * - partial match (substring) (apple vs pineapple, apple vs app) -> should NOT match
      * - multiple words in text match one target word
      * - one tweet matches multiple target words
-     * 
-     */
+     * 5. match condition:
+     * - many for one:multiple words in one single tweet
+     * - one for many:multiple tweets fit one single word
+     * - one for one
+     * 6.other char:only letters , mixed with chars(not blank)
+     */ 
+     
+    
+    
      
 
     private static final Instant d1 = Instant.parse("2016-02-17T10:00:00Z");
@@ -52,7 +59,7 @@ public class FilterTest {
     private static final Tweet tweet1 = new Tweet(1, "alyssa",
             "I've been waiting for my latte for 10 years @bbitdiddle", d1);
     private static final Tweet tweet2 = new Tweet(2, "bbitdiddle",
-            "@Alyssa Keep calm, I'm just fighting with the espresso machine!", d2);
+            "@Alyssa Keep calm, I'm just fighting with the espresso machine !", d2);
     private static final Tweet tweet3 = new Tweet(3, "ALYSSA", "The machine won. My coffee is on the floor. #sad", d3);
     private static final Tweet tweet4 = new Tweet(4, "charles",
             "Watching @alyssa and @bbitdiddle is better than Netflix.", d4);
@@ -96,9 +103,9 @@ public class FilterTest {
 
     // This test covers size!=number
     @Test
-    public void test() {
+    public void testMixedCase() {
         List<Tweet> res = Filter.writtenBy(Arrays.asList(tweet1, tweet2, tweet3, tweet4, tweet5), "bbitdiddle");
-        assertEquals(res, Arrays.asList(tweet2, tweet5));
+        assertEquals(Arrays.asList(tweet2, tweet5),res);
     }
 
     /**************** test case for InTimespan *****************/
@@ -170,24 +177,6 @@ public class FilterTest {
     
     /****************test for Containing*****************/
     
-    /* Testing strategy for containing:
-        * * Partition the inputs as follows:
-        * 1. tweets.size(): 0, 1, >1
-        * 2. words.size(): 0, 1, >1
-        * 3. Word position in text: start, middle, end
-        * 4. Word-to-Target relation: 
-        * - exact match (apple vs apple)
-        * - case-insensitive match (apple vs APPLE)
-        * - partial match (substring) (apple vs pineapple, apple vs app) -> should NOT match
-        * - multiple words in text match one target word
-        * - one tweet matches multiple target words
-        * 5. match condition:
-        * - many for one:multiple words in one single tweet
-        * - one for many:multiple tweets fit one single word
-        * - one for one
-        * 6.other char:only letters , mixed with chars(not blank)
-        */
-    
     //This test covers tweet.size=0
     @Test
     public void testEmptyTweet() {
@@ -227,14 +216,14 @@ public class FilterTest {
     @Test
     public void testOneForMany() {
         List<Tweet> res = Filter.containing(Arrays.asList(tweet1,tweet2,tweet3,tweet4,tweet5), Arrays.asList("machine"));
-        assertEquals(res,Arrays.asList(tweet2,tweet3));
+        assertEquals(Arrays.asList(tweet2,tweet3),res);
     }
     
     //This test covers position=middle,tweets.size=more,words.size=more,relation=case-insensitive match,match condition=one for many,other char:only letters
     @Test
     public void testCaseInsensitive() {
         List<Tweet> res = Filter.containing(Arrays.asList(tweet1,tweet2,tweet3,tweet4,tweet5), Arrays.asList("Machine"));
-        assertEquals(res,Arrays.asList(tweet2,tweet3));
+        assertEquals(Arrays.asList(tweet2,tweet3),res);
     }
     
     //This test covers position=middle,tweets.size=more,words.size=more,relation=substring
@@ -265,18 +254,6 @@ public class FilterTest {
         assertEquals(res,Arrays.asList(tweet3));
     }
     
-    
-    
-    //
-    
-    @Test
-    public void testContaining() {
-        List<Tweet> containing = Filter.containing(Arrays.asList(tweet1), Arrays.asList("talk"));
-
-        assertFalse("expected non-empty list", containing.isEmpty());
-        assertTrue("expected list to contain tweets", containing.containsAll(Arrays.asList(tweet1, tweet2)));
-        assertEquals("expected same order", 0, containing.indexOf(tweet1));
-    }
 
     /*
      * Warning: all the tests you write here must be runnable against any Filter

@@ -39,6 +39,7 @@ public class FilterTest {
      * - partial match (substring) (apple vs pineapple, apple vs app) -> should NOT match
      * - multiple words in text match one target word
      * - one tweet matches multiple target words
+     * 
      */
      
 
@@ -168,6 +169,105 @@ public class FilterTest {
     }
     
     /****************test for Containing*****************/
+    
+    /* Testing strategy for containing:
+        * * Partition the inputs as follows:
+        * 1. tweets.size(): 0, 1, >1
+        * 2. words.size(): 0, 1, >1
+        * 3. Word position in text: start, middle, end
+        * 4. Word-to-Target relation: 
+        * - exact match (apple vs apple)
+        * - case-insensitive match (apple vs APPLE)
+        * - partial match (substring) (apple vs pineapple, apple vs app) -> should NOT match
+        * - multiple words in text match one target word
+        * - one tweet matches multiple target words
+        * 5. match condition:
+        * - many for one:multiple words in one single tweet
+        * - one for many:multiple tweets fit one single word
+        * - one for one
+        * 6.other char:only letters , mixed with chars(not blank)
+        */
+    
+    //This test covers tweet.size=0
+    @Test
+    public void testEmptyTweet() {
+        List<Tweet> res = Filter.containing(new ArrayList<>(), Arrays.asList("espresso"));
+        assertTrue(res.isEmpty());
+    }
+    
+    //This test covers words.size=0
+    @Test
+    public void testEmptyWords() {
+        List<Tweet> res = Filter.containing(Arrays.asList(tweet1,tweet2,tweet3,tweet4,tweet5), new ArrayList<>());
+        assertTrue(res.isEmpty());
+    }
+    
+    //This test covers position=start,tweets.size=1,words.size=1,relation=exact match,match condition=one for one,other char:only letters
+    @Test
+    public void testStartPostion() {
+        List<Tweet> res = Filter.containing(Arrays.asList(tweet4), Arrays.asList("Watching"));
+        assertEquals(res,Arrays.asList(tweet4));
+    }
+    
+    //This test covers position=end,tweets.size=1,words.size=1,relation=exact match,match condition=one for one,other char:only letters
+    @Test
+    public void testEndPostion() {
+        List<Tweet> res = Filter.containing(Arrays.asList(tweet1), Arrays.asList("@bbitdiddle"));
+        assertEquals(res,Arrays.asList(tweet1));
+    }
+    
+    //This Test covers position=middle,tweets.size=1,words.size=more,relation=exact match,match condition=many for one,other char:only letters
+    @Test
+    public void testManyForOne() {
+        List<Tweet> res = Filter.containing(Arrays.asList(tweet1), Arrays.asList("latte","waiting"));
+        assertEquals(res,Arrays.asList(tweet1));
+    }
+    
+    //This test covers position=middle,tweets.size=more,words.size=1,relation=exact match,match condition=one for many,other char:only letters
+    @Test
+    public void testOneForMany() {
+        List<Tweet> res = Filter.containing(Arrays.asList(tweet1,tweet2,tweet3,tweet4,tweet5), Arrays.asList("machine"));
+        assertEquals(res,Arrays.asList(tweet2,tweet3));
+    }
+    
+    //This test covers position=middle,tweets.size=more,words.size=more,relation=case-insensitive match,match condition=one for many,other char:only letters
+    @Test
+    public void testCaseInsensitive() {
+        List<Tweet> res = Filter.containing(Arrays.asList(tweet1,tweet2,tweet3,tweet4,tweet5), Arrays.asList("Machine"));
+        assertEquals(res,Arrays.asList(tweet2,tweet3));
+    }
+    
+    //This test covers position=middle,tweets.size=more,words.size=more,relation=substring
+    @Test
+    public void testSubstring() {
+        List<Tweet> res = Filter.containing(Arrays.asList(tweet1,tweet2,tweet3,tweet4,tweet5), Arrays.asList("mach"));
+        assertTrue(res.isEmpty());
+    }
+    
+    //This test covers position=middle,tweets.size=more,words.size=more,relation=opposite substring
+    @Test
+    public void testOppositeSubstring() {
+        List<Tweet> res = Filter.containing(Arrays.asList(tweet1,tweet2,tweet3,tweet4,tweet5), Arrays.asList("machinary"));
+        assertTrue(res.isEmpty());
+    }
+    
+    //This test covers position=middle,tweets.size=more,words.size=more,relation=exact match,other chars=mixed
+    @Test
+    public void testMixedChars() {
+        List<Tweet> res = Filter.containing(Arrays.asList(tweet1,tweet2,tweet3,tweet4,tweet5), Arrays.asList("sad"));
+        assertTrue(res.isEmpty());
+    }
+    
+    //This test covers position=middle,tweets.size=more,words.size=more,relation=exact match,other chars=mixed
+    @Test
+    public void testMixedChars2() {
+        List<Tweet> res = Filter.containing(Arrays.asList(tweet1,tweet2,tweet3,tweet4,tweet5), Arrays.asList("#sad"));
+        assertEquals(res,Arrays.asList(tweet3));
+    }
+    
+    
+    
+    //
     
     @Test
     public void testContaining() {

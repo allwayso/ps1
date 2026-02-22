@@ -5,7 +5,9 @@ package twitter;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URL;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -22,11 +24,12 @@ public class Main {
      * within the last hour. This server may take up to a minute to respond, if
      * it has to refresh its cached sample of tweets.
      */
-    public static final URL SAMPLE_SERVER = makeURLAssertWellFormatted("http://courses.csail.mit.edu/6.005/ps1_tweets/tweetPoll.py");
+    public static final URL SAMPLE_SERVER = makeURLAssertWellFormatted("https://courses.csail.mit.edu/6.005/ps1_tweets/tweets.json");
     
     private static URL makeURLAssertWellFormatted(String urlString) {
         try {
-            return new URL(urlString);
+            URI uri = URI.create(urlString);
+            return uri.toURL();
         } catch (MalformedURLException murle) {
             throw new AssertionError(murle);
         }
@@ -70,6 +73,26 @@ public class Main {
         for (String username : influencers.subList(0, Math.min(count, influencers.size()))) {
             System.out.println(username);
         }
+        
+        System.out.println("--- 正在深度追踪 AnonOpsUnited2 ---");
+        int foundCount = 0;
+        String targetId = "anonopsunited2"; 
+
+        for (Tweet t : tweets) {
+            Set<String> mentioned = Extract.getMentionedUsers(Arrays.asList(t));
+            
+            if (mentioned.contains(targetId)) {
+                foundCount++;
+                System.out.println("[" + foundCount + "] " + t.getAuthor() + ": " + t.getText());
+                System.out.println("时间: " + t.getTimestamp());
+                System.out.println("--------------------------------");
+            }
+        }
+
+        if (foundCount == 0) {
+            System.out.println("依然没找到？检查一下推文里是不是其实没人提到他，而是他自己在发推？");
+        }
+        
     }
     
 }

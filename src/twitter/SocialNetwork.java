@@ -48,7 +48,7 @@ public class SocialNetwork {
                 if(res.containsKey(author)) {
                     res.get(author).addAll(mentioned);
                 }
-                else res.put(author, mentioned);
+                else res.put(author, new HashSet<>(mentioned));
             }
         }
         return res;
@@ -71,7 +71,7 @@ public class SocialNetwork {
         for(Set<String> mentioned:followsGraph.values()) {
             for(String names:mentioned) {
                 if(ranking.containsKey(names.toLowerCase())) {
-                    ranking.put(names.toLowerCase(),ranking.get(names)+1);
+                    ranking.put(names.toLowerCase(),ranking.get(names.toLowerCase())+1);
                 }
                 else ranking.put(names.toLowerCase(),1);
             }

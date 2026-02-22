@@ -12,9 +12,6 @@ import org.junit.Test;
 public class SocialNetworkTest {
 
     /*
-     * TODO: your testing strategies for these methods should go here.
-     * See the ic03-testing exercise for examples of what a testing strategy comment looks like.
-     * Make sure you have partitions.
      *
      * Testing strategy for guessFollowGraph:
      * 1.Tweets.size=0,1,more

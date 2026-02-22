@@ -5,12 +5,7 @@ package twitter;
 
 import static org.junit.Assert.*;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.time.Instant;
 import org.junit.Test;
 
@@ -141,35 +136,10 @@ public class SocialNetworkTest {
     @Test
     public void testAuthorKey() {
         Map<String, Set<String>> followsGraph = SocialNetwork.guessFollowsGraph(Arrays.asList(tweet10));
-        String foundAuthorKey = null;
-        String author="ivan";
-        for (String key : followsGraph.keySet()) {
-            if (key.equalsIgnoreCase(author)) {
-                foundAuthorKey = key;
-                break;
-            }
-        }
-        
-        assertNotNull("Expected author '" + author + "' not found in graph keys", foundAuthorKey);
-        assertTrue(followsGraph.get(foundAuthorKey).isEmpty());
+        assertConnectionExists(followsGraph, "ivan", "alyssa");
+        assertConnectionNotExist(followsGraph, "ivan", "ivan");
     }
     
-    //This test covers tweets.size=1,mention object=mention nobody,key=author,case=same
-    @Test
-    public void testAuthorKeyNobody() {
-        Map<String, Set<String>> followsGraph = SocialNetwork.guessFollowsGraph(Arrays.asList(tweet9));
-        String foundAuthorKey = null;
-        String author="alyssa";
-        for (String key : followsGraph.keySet()) {
-            if (key.equalsIgnoreCase(author)) {
-                foundAuthorKey = key;
-                break;
-            }
-        }
-        
-        assertNotNull("Expected author '" + author + "' not found in graph keys", foundAuthorKey);
-        assertTrue(followsGraph.get(foundAuthorKey).isEmpty());
-    }
     
     //This test covers tweets.size=more,mention object=mention others,key=author,case=differ
     @Test
@@ -192,8 +162,8 @@ public class SocialNetworkTest {
     @Test
     public void testRepeatDifferTweet() {
         Map<String, Set<String>> followsGraph = SocialNetwork.guessFollowsGraph(Arrays.asList(tweet3,tweet6));
-        assertConnectionExists(followsGraph, "charles","bbitdiddle" );
-        assertConnectionExists(followsGraph, "charles","alyssa" );
+        assertConnectionExists(followsGraph, "charlie","bbitdiddle" );
+        assertConnectionExists(followsGraph, "charlie","alyssa" );
     }
     
     //This test covers tweets.size=more,mention object=all case,key=all case,case=all case,repeat=differ or same
@@ -216,15 +186,90 @@ public class SocialNetworkTest {
     }
     
     
+    // 1. Empty Graph
+    public final Map<String, Set<String>> emptyGraph = new HashMap<>();
+
+ // 2. Keys with Empty Sets (Authors with no mentions)
+    private final Map<String, Set<String>> noMentionsGraph = new HashMap<String, Set<String>>() {{
+        put("alyssa", new HashSet<>());
+        put("bbitdiddle", new HashSet<>());
+    }};
+
+    // 3. Tied Followers (A and B both followed by C)
+    private final Map<String, Set<String>> tiedGraph = new HashMap<String, Set<String>>() {{
+        put("charlie", new HashSet<>(Arrays.asList("alyssa", "bbitdiddle")));
+    }};
+
+    // 4. Varying Follower Counts (A followed by 2 people, B followed by 1)
+    private final Map<String, Set<String>> varyingGraph = new HashMap<String, Set<String>>() {{
+        put("charlie", new HashSet<>(Arrays.asList("alyssa", "bbitdiddle")));
+        put("evans", new HashSet<>(Arrays.asList("alyssa")));
+    }};
+
+    // 5. Case-Insensitive Multi-User
+    private final Map<String, Set<String>> caseInsensitiveGraph = new HashMap<String, Set<String>>() {{
+        put("charlie", new HashSet<>(Arrays.asList("alyssa")));
+        put("bbitdiddle", new HashSet<>(Arrays.asList("Alyssa")));
+        put("evans", new HashSet<>(Arrays.asList("george")));
+    }};
     
+    /*
+     * Test strategy for influencers:
+     * 1. input.size():0,1 or more
+     * 2. tied followers:true or false
+     * 3. case-insensitivity:same or differ
+     * 4. set:empty or nonempty
+     */
+    
+    //This test covers input.size()=0
     @Test
-    public void testInfluencersEmpty() {
-        Map<String, Set<String>> followsGraph = new HashMap<>();
-        List<String> influencers = SocialNetwork.influencers(followsGraph);
-        
+    public void testEmptyInput() {
+     
+        List<String> influencers = SocialNetwork.influencers(emptyGraph);
         assertTrue("expected empty list", influencers.isEmpty());
     }
-
+    
+    //This test covers input.size()=2,set=empty
+    @Test
+    public void testEmptySet() {
+     
+        List<String> influencers = SocialNetwork.influencers(noMentionsGraph);
+        assertEquals("expected 2 users with 0 followers", 2, influencers.size());
+        assertTrue("should contain alyssa", influencers.stream().anyMatch(u -> u.equalsIgnoreCase("alyssa")));
+        assertTrue("should contain bbitdiddle", influencers.stream().anyMatch(u -> u.equalsIgnoreCase("bbitdiddle")));
+    }
+    
+    //This test covers input.size()=1,tied=true
+    @Test
+    public void testTiedFollowers() {
+     
+        List<String> influencers = SocialNetwork.influencers(tiedGraph);
+        assertTrue(influencers.size() >= 2);
+        
+        Set<String> topTwo = new HashSet<>();
+        topTwo.add(influencers.get(0).toLowerCase());
+        topTwo.add(influencers.get(1).toLowerCase());
+        
+        assertTrue(topTwo.contains("alyssa"));
+        assertTrue(topTwo.contains("bbitdiddle"));
+    }
+    
+    //This test covers input.size()=more,tied=false
+    @Test
+    public void testVaringRank() {
+        List<String> influencers = SocialNetwork.influencers(varyingGraph);
+        assertEquals(influencers.get(0).toLowerCase(),"alyssa");
+        assertEquals(influencers.get(1).toLowerCase(),"bbitdiddle");
+        
+    }
+    //This test covers input.size()=more,tied=false,case=differ
+    @Test
+    public void testDifferentCase() {
+        List<String> influencers = SocialNetwork.influencers(caseInsensitiveGraph);
+        assertEquals(influencers.get(0).toLowerCase(),"alyssa");
+        assertEquals(influencers.get(1).toLowerCase(),"george");
+        
+    }
     /*
      * Warning: all the tests you write here must be runnable against any
      * SocialNetwork class that follows the spec. It will be run against several

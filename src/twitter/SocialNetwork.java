@@ -64,8 +64,21 @@ public class SocialNetwork {
      *         descending order of follower count.
      */
     public static List<String> influencers(Map<String, Set<String>> followsGraph) {
-        return null;
-        
+        Map<String,Integer> ranking=new HashMap<>();
+        for(String user:followsGraph.keySet()) {
+            ranking.put(user.toLowerCase(), 0);
+        }
+        for(Set<String> mentioned:followsGraph.values()) {
+            for(String names:mentioned) {
+                if(ranking.containsKey(names.toLowerCase())) {
+                    ranking.put(names.toLowerCase(),ranking.get(names)+1);
+                }
+                else ranking.put(names.toLowerCase(),1);
+            }
+        }
+        List<String> result = new ArrayList<>(ranking.keySet());
+        result.sort((u1, u2) -> ranking.get(u2).compareTo(ranking.get(u1)));
+        return result;
     }
 
 }
